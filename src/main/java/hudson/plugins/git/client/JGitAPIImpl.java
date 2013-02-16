@@ -39,7 +39,7 @@ public class JGitAPIImpl implements IGitAPI {
 
     public JGitAPIImpl(String gitExe, File workspace,
                          TaskListener listener, EnvVars environment, String reference) {
-        this(new CliGitAPIImpl(gitExe, workspace, listener, environment, reference),
+        this(new JGitAPIImpl(gitExe, workspace, listener, environment, reference),
              workspace, listener);
     }
 

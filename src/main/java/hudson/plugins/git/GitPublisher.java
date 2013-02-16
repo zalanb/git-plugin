@@ -203,7 +203,7 @@ public class GitPublisher extends Recorder implements Serializable, MatrixAggreg
                             public Boolean invoke(File workspace,
                                                   VirtualChannel channel) throws IOException {
                                 
-                                IGitAPI git = new CliGitAPIImpl(
+                                IGitAPI git = new JGitAPIImpl(
                                                          gitExe, workspace,
                                                          listener, environment);
                                 
@@ -266,7 +266,7 @@ public class GitPublisher extends Recorder implements Serializable, MatrixAggreg
                                     public Boolean invoke(File workspace,
                                                           VirtualChannel channel) throws IOException {
                                         
-                                        IGitAPI git = new CliGitAPIImpl(gitExe, workspace,
+                                        IGitAPI git = new JGitAPIImpl(gitExe, workspace,
                                                                  listener, environment);
                                         
                                         RemoteConfig remote = gitSCM.getRepositoryByName(targetRepo);
@@ -340,7 +340,7 @@ public class GitPublisher extends Recorder implements Serializable, MatrixAggreg
                                     public Boolean invoke(File workspace,
                                                           VirtualChannel channel) throws IOException {
                                         
-                                        IGitAPI git = new CliGitAPIImpl(gitExe, workspace,
+                                        IGitAPI git = new JGitAPIImpl(gitExe, workspace,
                                                                  listener, environment);
                                         
                                         RemoteConfig remote = gitSCM.getRepositoryByName(targetRepo);
@@ -398,7 +398,7 @@ public class GitPublisher extends Recorder implements Serializable, MatrixAggreg
                                     public Boolean invoke(File workspace,
                                                           VirtualChannel channel) throws IOException {
                                         
-                                        IGitAPI git = new CliGitAPIImpl(gitExe, workspace,
+                                        IGitAPI git = new JGitAPIImpl(gitExe, workspace,
                                                                  listener, environment);
 
                                         
