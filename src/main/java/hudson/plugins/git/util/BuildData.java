@@ -1,16 +1,13 @@
 package hudson.plugins.git.util;
 
 import hudson.Functions;
-import hudson.model.AbstractBuild;
 import hudson.model.Action;
 import hudson.model.Api;
-import hudson.model.Run;
 import hudson.plugins.git.Branch;
 import hudson.plugins.git.Revision;
 import hudson.plugins.git.UserRemoteConfig;
 import org.eclipse.jgit.lib.ObjectId;
 import org.kohsuke.stapler.export.Exported;
-import org.kohsuke.stapler.export.ExportedBean;
 
 import java.io.Serializable;
 import java.util.*;
@@ -20,11 +17,8 @@ import static hudson.Util.fixNull;
 /**
  * Captures the Git related information for a build.
  *
- * <p>
- * This object is added to {@link AbstractBuild#getActions()}.
- * This persists the Git related information of that build.
+ * @deprecated see {@link hudson.plugins.git.BuildHistory}
  */
-@ExportedBean(defaultVisibility = 999)
 public class BuildData implements Action, Serializable, Cloneable {
     private static final long serialVersionUID = 1L;
 
@@ -35,24 +29,24 @@ public class BuildData implements Action, Serializable, Cloneable {
      * This map contains all the branches we've built in the past (including the build that this {@link BuildData}
      * is attached to) 
      */
-    public Map<String, Build> buildsByBranchName = new HashMap<String, Build>();
+    public transient Map<String, Build> buildsByBranchName = new HashMap<String, Build>();
 
     /**
      * The last build that we did (among the values in {@link #buildsByBranchName}.)
      * @deprecated
      *      lookup Build's {@link hudson.scm.SCMRevisionState}
      */
-    public Build lastBuild;
+    public transient Build lastBuild;
 
     /**
      * The name of the SCM as given by the user.
      */
-    public String scmName;
+    public transient String scmName;
 
     /**
      * The URLs that have been referenced.
      */
-    public Set<String> remoteUrls = new HashSet<String>();
+    public transient Set<String> remoteUrls = new HashSet<String>();
 
     public BuildData() {
     }
@@ -231,4 +225,5 @@ public class BuildData implements Action, Serializable, Cloneable {
                 ",buildsByBranchName="+buildsByBranchName+
                 ",lastBuild="+lastBuild+"]";
     }
+
 }
