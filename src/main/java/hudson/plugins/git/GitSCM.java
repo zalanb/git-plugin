@@ -540,13 +540,12 @@ public class GitSCM extends GitSCMBackwardCompatibility {
             }
 
             listener.getLogger().println("Polling for changes in");
-            BuildData buildData = getBuildData(lastBuild);
 
             Collection<Revision> candidates = getBuildChooser().getCandidateRevisions(
-                    true, singleBranch, git, listener, buildData, new BuildChooserContextImpl(project, null));
+                    true, singleBranch, git, listener, getBuildHistory(project), new BuildChooserContextImpl(project, null));
 
             for (Revision c : candidates) {
-                if (!isRevExcluded(git, c, listener, buildData.lastBuild)) {
+                if (!isRevExcluded(git, c, listener, baseline)) {
                     return PollingResult.SIGNIFICANT;
                 }
             }
@@ -860,8 +859,7 @@ public class GitSCM extends GitSCMBackwardCompatibility {
         build.addAction(revToBuild);
         build.addAction(new GitTagAction(build, revision));
 
-        BuildData previousBuildData = getBuildData(previousBuild);   // read only
-        computeChangeLog(git, revision, listener, previousBuildData, new FilePath(changelogFile),
+        computeChangeLog(git, revision, listener, getBuildHistory(build), new FilePath(changelogFile),
                 new BuildChooserContextImpl(build.getProject(), build));
 
         for (GitSCMExtension ext : extensions) {
@@ -909,11 +907,11 @@ public class GitSCM extends GitSCMBackwardCompatibility {
      *      Points to the revision we'll be building. This includes all the branches we've merged.
      * @param listener
      *      Used for writing to build console
-     * @param previousBuildData
+     * @param history
      *      Information that captures what we did during the last build. We need this for changelog,
      *      or else we won't know where to stop.
      */
-    private void computeChangeLog(GitClient git, Revision revToBuild, BuildListener listener, BuildData previousBuildData, FilePath changelogFile, BuildChooserContext context) throws IOException, InterruptedException {
+    private void computeChangeLog(GitClient git, Revision revToBuild, BuildListener listener, BuildHistory history, FilePath changelogFile, BuildChooserContext context) throws IOException, InterruptedException {
         Writer out = new OutputStreamWriter(changelogFile.write(),"UTF-8");
 
         ChangelogCommand changelog = git.changelog();
@@ -921,7 +919,7 @@ public class GitSCM extends GitSCMBackwardCompatibility {
         try {
             boolean exclusion = false;
             for (Branch b : revToBuild.getBranches()) {
-                Build lastRevWas = getBuildChooser().prevBuildForChangelog(b.getName(), previousBuildData, git, context);
+                Build lastRevWas = getBuildChooser().prevBuildForChangelog(b.getName(), history, git, context);
                 if (lastRevWas != null && git.isCommitInRepo(lastRevWas.getSHA1())) {
                     changelog.excludes(lastRevWas.getSHA1());
                     exclusion = true;
@@ -1276,12 +1274,23 @@ public class GitSCM extends GitSCMBackwardCompatibility {
             return base.clone();
     }
 
+    public BuildHistory getBuildHistory(Run run) {
+        return getBuildHistory(run.getParent());
+    }
+
+    public BuildHistory getBuildHistory(Job project) {
+        // TODO check/filter BuildHistory for relevant repository URLs
+        // maybe use URL+branch as key and return a filtered BuildHistory ?
+        return project.getAction(BuildHistory.class);
+    }
+
     /**
      * Find the build log (BuildData) recorded with the last build that completed. BuildData
      * may not be recorded if an exception occurs in the plugin logic.
      *
      * @param build
      * @return the last recorded build data
+     * @deprecated
      */
     public @CheckForNull BuildData getBuildData(Run build) {
         BuildData buildData = null;
