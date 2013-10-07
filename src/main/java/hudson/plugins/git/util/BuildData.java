@@ -39,6 +39,8 @@ public class BuildData implements Action, Serializable, Cloneable {
 
     /**
      * The last build that we did (among the values in {@link #buildsByBranchName}.)
+     * @deprecated
+     *      lookup Build's {@link hudson.scm.SCMRevisionState}
      */
     public Build lastBuild;
 
