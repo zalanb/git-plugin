@@ -13,6 +13,8 @@ import org.kohsuke.stapler.export.ExportedBean;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -51,6 +53,18 @@ public class BuildHistory extends BuildData {
         }
     }
 
+
+    @Override
+    public void saveBuild(Build build) {
+        super.saveBuild(build);
+
+        File file = new File(project.getRootDir(), BuildData.class.getName() + ".xml");
+        try {
+            Items.XSTREAM2.toXML(buildsByBranchName, new FileWriter(file));
+        } catch (IOException e) {
+            throw new RuntimeException("failed to persist build history " + file, e);
+        }
+    }
 
     /**
      * Register BuildData action on git-enabled projects to maintain the branch::revision Map

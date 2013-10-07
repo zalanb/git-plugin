@@ -832,8 +832,7 @@ public class GitSCM extends GitSCMBackwardCompatibility {
             listener.getLogger().println("Using strategy: " + getBuildChooser().getDisplayName());
 
         Run previousBuild = build.getPreviousBuild();
-        BuildData buildData = copyBuildData(previousBuild);
-        build.addAction(buildData);
+        BuildHistory history = getBuildHistory(build);
 
         EnvVars environment = build.getEnvironment(listener);
         GitClient git = createClient(listener,environment,build);
@@ -844,7 +843,7 @@ public class GitSCM extends GitSCMBackwardCompatibility {
 
         retrieveChanges(build, git, listener);
 
-        Build revToBuild = determineRevisionToBuild(build, buildData, environment, git, listener);
+        Build revToBuild = determineRevisionToBuild(build, history, environment, git, listener);
         Revision revision = revToBuild.revision;
 
         environment.put(GIT_COMMIT, revision.getSha1String());
@@ -855,7 +854,7 @@ public class GitSCM extends GitSCMBackwardCompatibility {
         listener.getLogger().println("Checking out " + revision);
         git.checkoutBranch(getParamLocalBranch(build), revision.getSha1String());
 
-        buildData.saveBuild(revToBuild);
+        history.saveBuild(revToBuild);
         build.addAction(revToBuild);
         build.addAction(new GitTagAction(build, revision));
 
