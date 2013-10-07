@@ -287,7 +287,7 @@ public abstract class AbstractGitSCMSource extends SCMSource {
     public static class SCMRevisionImpl extends SCMRevision {
 
         /**
-         * The subversion revision.
+         * The git revision.
          */
         private String hash;
 
