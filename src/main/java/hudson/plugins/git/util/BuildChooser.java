@@ -95,14 +95,6 @@ public abstract class BuildChooser implements ExtensionPoint, Describable<BuildC
     }
 
     /**
-     * @deprecated as of 1.1.25
-     *      Use and override {@link #prevBuildForChangelog(String, BuildData, IGitAPI, BuildChooserContext)}
-     */
-    public Build prevBuildForChangelog(String branch, @Nullable BuildData data, IGitAPI git) {
-        return data==null?null:data.getLastBuildOfBranch(branch);
-    }
-
-    /**
      * Determines the baseline to compute the changelog against.
      *
      * <p>
@@ -134,6 +126,14 @@ public abstract class BuildChooser implements ExtensionPoint, Describable<BuildC
      */
     public Build prevBuildForChangelog(String branch, @Nullable BuildData data, IGitAPI git, BuildChooserContext context) throws IOException,InterruptedException {
         return prevBuildForChangelog(branch,data,git);
+    }
+
+    /**
+     * @deprecated as of 1.1.25
+     *      Use and override {@link #prevBuildForChangelog(String, BuildData, IGitAPI, BuildChooserContext)}
+     */
+    public Build prevBuildForChangelog(String branch, @Nullable BuildData data, IGitAPI git) {
+        return data==null?null:data.getLastBuildOfBranch(branch);
     }
 
     public BuildChooserDescriptor getDescriptor() {
