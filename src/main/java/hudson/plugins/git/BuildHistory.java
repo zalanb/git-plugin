@@ -4,6 +4,7 @@ import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
 import hudson.model.Items;
+import hudson.model.Run;
 import hudson.model.TransientProjectActionFactory;
 import hudson.plugins.git.util.Build;
 import hudson.plugins.git.util.BuildData;
@@ -38,6 +39,14 @@ public class BuildHistory extends BuildData {
             } catch (FileNotFoundException e) {
                 // really ?
                 throw new RuntimeException("failed to load "+file+" exists but FileNotFoundException", e);
+            }
+        } else {
+            Run lastBuild = project.getLastBuild();
+            if (lastBuild != null) {
+                BuildData legacy = lastBuild.getAction(BuildData.class);
+                if (legacy != null) {
+                    buildsByBranchName.putAll(legacy.buildsByBranchName);
+                }
             }
         }
     }

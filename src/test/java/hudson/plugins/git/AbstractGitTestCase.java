@@ -132,6 +132,7 @@ public abstract class AbstractGitTestCase extends HudsonTestCase {
 
         project.setScm(scm);
         project.getBuildersList().add(new CaptureEnvironmentBuilder());
+        project.addProperty(new ParametersDefinitionProperty());       // Hack to get TransientActions set
         return project;
     }
 
