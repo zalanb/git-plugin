@@ -844,27 +844,25 @@ public class GitSCM extends GitSCMBackwardCompatibility {
         retrieveChanges(build, git, listener);
 
         Build revToBuild = determineRevisionToBuild(build, history, environment, git, listener);
-        Revision revision = revToBuild.revision;
+        build.addAction(revToBuild);
 
-        environment.put(GIT_COMMIT, revision.getSha1String());
-        Branch branch = Iterables.getFirst(revision.getBranches(), null);
+        environment.put(GIT_COMMIT, revToBuild.revision.getSha1String());
+        Branch branch = Iterables.getFirst(revToBuild.revision.getBranches(), null);
         if (branch!=null)   // null for a detached HEAD
             environment.put(GIT_BRANCH, branch.getName());
 
-        listener.getLogger().println("Checking out " + revision);
-        git.checkoutBranch(getParamLocalBranch(build), revision.getSha1String());
+        listener.getLogger().println("Checking out " + revToBuild.revision);
+        git.checkoutBranch(getParamLocalBranch(build), revToBuild.revision.getSha1String());
 
-        history.saveBuild(revToBuild);
-        build.addAction(revToBuild);
-        build.addAction(new GitTagAction(build, revision));
-
-        computeChangeLog(git, revision, listener, getBuildHistory(build), new FilePath(changelogFile),
+        computeChangeLog(git, revToBuild.revision, listener, getBuildHistory(build), new FilePath(changelogFile),
                 new BuildChooserContextImpl(build.getProject(), build));
 
         for (GitSCMExtension ext : extensions) {
             ext.onCheckoutCompleted(this, build, git,listener);
         }
 
+        history.saveBuild(revToBuild);
+        build.addAction(new GitTagAction(build, revToBuild.revision));
         return true;
     }
 
