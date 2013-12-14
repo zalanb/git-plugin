@@ -22,6 +22,7 @@ import hudson.plugins.git.extensions.GitSCMExtension;
 import hudson.plugins.git.extensions.GitSCMExtensionDescriptor;
 import hudson.plugins.git.extensions.impl.AuthorInChangelog;
 import hudson.plugins.git.extensions.impl.BuildChooserSetting;
+import hudson.plugins.git.extensions.impl.CloneOption;
 import hudson.plugins.git.extensions.impl.DisableRemotePoll;
 import hudson.plugins.git.extensions.impl.PreBuildMerge;
 import hudson.plugins.git.opt.PreBuildMergeOptions;
@@ -813,31 +814,42 @@ public class GitSCM extends GitSCMBackwardCompatibility {
         List<RemoteConfig> repos = getParamExpandedRepos(build);
         if (repos.isEmpty())    return; // defensive check even though this is an invalid configuration
 
-        if (git.hasGitRepo()) {
-            // It's an update
-            if (repos.size() == 1)
-                log.println("Fetching changes from the remote Git repository");
-            else
-                log.println(MessageFormat.format("Fetching changes from {0} remote Git repositories", repos.size()));
-        } else {
-            log.println("Cloning the remote Git repository");
+        if (!git.hasGitRepo()) {
+            if (needClone()) {
+                log.println("Cloning the remote Git repository");
 
-            RemoteConfig rc = repos.get(0);
-            try {
-                CloneCommand cmd = git.clone_().url(rc.getURIs().get(0).toPrivateString()).repositoryName(rc.getName());
-                for (GitSCMExtension ext : extensions) {
-                    ext.decorateCloneCommand(this, build, git, listener, cmd);
+                RemoteConfig rc = repos.get(0);
+                try {
+                    CloneCommand cmd = git.clone_().url(rc.getURIs().get(0).toPrivateString()).repositoryName(rc.getName());
+                    for (GitSCMExtension ext : extensions) {
+                        ext.decorateCloneCommand(this, build, git, listener, cmd);
+                    }
+                    cmd.execute();
+                } catch (GitException ex) {
+                    ex.printStackTrace(listener.error("Error cloning remote repo '%s'", rc.getName()));
+                    throw new AbortException();
                 }
-                cmd.execute();
-            } catch (GitException ex) {
-                ex.printStackTrace(listener.error("Error cloning remote repo '%s'", rc.getName()));
-                throw new AbortException();
+            } else {
+                // just init a local git repo so we can fetch from remotes
+                git.init();
             }
         }
+
+        if (repos.size() == 1)
+            log.println("Fetching changes from the remote Git repository");
+        else
+            log.printf("Fetching changes from %s remote Git repositories", repos.size());
 
         for (RemoteConfig remoteRepository : repos) {
             fetchFrom(git, listener, remoteRepository);
         }
+    }
+
+    private boolean needClone() {
+        for (GitSCMExtension ext : extensions) {
+            if (ext instanceof CloneOption) return true;
+        }
+        return false;
     }
 
     @Override
