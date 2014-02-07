@@ -7,9 +7,9 @@
   </parent>
 
   <artifactId>git</artifactId>
-  <version>1.6.0-beta-1</version>
+  <version>IR1.6.0-1</version>
   <packaging>hpi</packaging>
-  <name>Jenkins GIT plugin</name>
+  <name>Axis Jenkins GIT plugin</name>
   <description>Integrates Jenkins with GIT SCM</description>
   <url>http://wiki.jenkins-ci.org/display/JENKINS/Git+Plugin</url>
 

@@ -1,3 +1,8 @@
 <div>
   <p>If given, "git config user.email [this]" is called before builds. This can be overridden by individual projects.</p>
+  <p>
+    Optionally, the $userId macro can be used, in which case it will be substituted with the user identity of the 
+    authenticated user that started the build. Naturally, this only works if the user is logged in and the build was
+    started manually.
+  </p>
 </div>

@@ -456,21 +456,53 @@ public class GitSCM extends SCM implements Serializable {
         return reference;
     }
 
-    public String getGitConfigNameToUse() {
+    private String getAuthenticatedUserName(AbstractBuild<?, ?> build) {
+        String userName = null;
+        Cause.UserIdCause userIdCause = build.getCause(Cause.UserIdCause.class);
+        if ((userIdCause != null) && (getAuthenticatedUserId(build) != null)) {
+            userName = userIdCause.getUserName();
+        }
+        return fixEmptyAndTrim(userName);
+    }
+
+    private String getAuthenticatedUserId(AbstractBuild<?, ?> build) {
+        String userId = null;
+        Cause.UserIdCause userIdCause = build.getCause(Cause.UserIdCause.class);
+        if (userIdCause != null) {
+            userId = userIdCause.getUserId();
+        }
+        return fixEmptyAndTrim(userId);
+    }
+
+    public String getGitConfigNameToUse(AbstractBuild<?, ?> build) {
         String confName = fixEmptyAndTrim(gitConfigName);
         if (confName == null) {
         	String globalConfigName = ((DescriptorImpl) getDescriptor()).getGlobalConfigName();
         	confName = fixEmptyAndTrim(globalConfigName);
         }
+
+        // Try resolving the $userName macro
+        if ((confName != null) && confName.contains("$userName")) {
+            String userName = getAuthenticatedUserName(build);
+            confName = (userName != null ? confName.replaceAll("\\$userName", userName) : null);
+        }
+
         return confName;
     }
 
-    public String getGitConfigEmailToUse() {
+    public String getGitConfigEmailToUse(AbstractBuild<?, ?> build) {
         String confEmail = fixEmptyAndTrim(gitConfigEmail);
         if (confEmail == null) {
         	String globalConfigEmail = ((DescriptorImpl) getDescriptor()).getGlobalConfigEmail();
         	confEmail = fixEmptyAndTrim(globalConfigEmail);
         }
+
+        // Try resolving the $userId macro
+        if ((confEmail != null) && confEmail.contains("$userId")) {
+            String userId = getAuthenticatedUserId(build);
+            confEmail = (userId != null ? confEmail.replaceAll("\\$userId", userId) : null);
+        }
+
         return confEmail;
     }
 
@@ -1368,19 +1400,17 @@ public class GitSCM extends SCM implements Serializable {
       		count++;
          }  
       }
-    	  
-    	
-        String confName = getGitConfigNameToUse();
+
+        String confName = getGitConfigNameToUse(build);
         if ((confName != null) && (!confName.equals(""))) {
             env.put("GIT_COMMITTER_NAME", confName);
             env.put("GIT_AUTHOR_NAME", confName);
         }
-        String confEmail = getGitConfigEmailToUse();
+        String confEmail = getGitConfigEmailToUse(build);
         if ((confEmail != null) && (!confEmail.equals(""))) {
             env.put("GIT_COMMITTER_EMAIL", confEmail);
             env.put("GIT_AUTHOR_EMAIL", confEmail);
         }
-
     }
 
     private String getLastBuiltCommitOfBranch(AbstractBuild<?, ?> build, Branch branch) {
